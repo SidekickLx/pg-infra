@@ -1,25 +1,13 @@
 import os,sys, random
 from getpass import getpass
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.document_loaders import TextLoader
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.vectorstores import Chroma
-from langchain.chains import RetrievalQAWithSourcesChain, LLMChain
-from langchain import OpenAI
-from langchain.callbacks import get_openai_callback
-from langchain.agents.tools import Tool
-from langchain.pydantic_v1 import BaseModel, Field
-from langchain.tools import BaseTool, StructuredTool, tool
-from langchain import PromptTemplate
-from langchain_openai import ChatOpenAI
-from langchain import PromptTemplate
+from langchain.chains import LLMChain
 from langchain_community.chat_models import ChatLiteLLM
-from langchain_core.messages import HumanMessage
 from langchain.agents import AgentExecutor, ZeroShotAgent
 from langchain.chains.conversation.memory import ConversationBufferMemory
+from tools import *
 
 # set up openAI token
-os.environ['OPENAI_API_KEY'] = getpass('OpenAI Token:')
+# os.environ['OPENAI_API_KEY'] = getpass('OpenAI Token:')
 
 
 if __name__ == "__main__":
@@ -42,11 +30,11 @@ if __name__ == "__main__":
         {agent_scratchpad}
         """
 
-    pr_tools = []
+    pr_tools = [goal_keeper_caller, gen_patch]
 
 
     prompt = ZeroShotAgent.create_prompt(
-        tools = [],
+        tools = pr_tools,
         prefix=prefix,
         suffix=suffix,
         input_variables=[
@@ -64,7 +52,7 @@ if __name__ == "__main__":
     llm_chain = LLMChain(llm=litellm, prompt=prompt)
     agent = ZeroShotAgent(llm_chain=llm_chain)
     agent_executor = AgentExecutor.from_agent_and_tools(
-        tools = [],
+        tools = pr_tools,
         agent=agent,
         verbose=True,
         memory=memory,
