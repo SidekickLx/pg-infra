@@ -1,68 +1,46 @@
 import os, sys, random
+import structures 
+import prompts
+import utils
 from langchain_core.prompts import PromptTemplate
 from langchain_community.chat_models import ChatLiteLLM
-from langchain.chains import LLMChain 
-from goalkeeper_test_patch import test_patch
-from utils import *
-
-def goal_keeper(repaired_code, tgt_proj="linux"):
-    # TODO: generate patch
-    
-    feedback = test_patch(patch, tgt_proj)
-    '''
-    {
-    'build_status': build_status,
-    'build_output': build_output,
-    'pov_results': pov_results,
-    'test_status': test_status,
-    'test_output': test_output
-    }
-    '''
-    # TODO: wrapper
-
-    return feedback
+from langchain.chains.llm import LLMChain 
 
 
 if __name__ == "__main__":
+    input_json = {}
+    patch_name = "new_patch.diff"
 
     litellm = ChatLiteLLM(model="gpt-3.5-turbo") # use LiteLLM Interface
     execute_task_prompt = PromptTemplate(
-        template= """You are a cybersecurity expert that is responsible to repair a vulnerable code.
-        {code}
-        Your task is to generate a code snippet that fix the vulerability. Do not output other irrelavent information!
-        Here are some useful information that can help you identify the vulerability. There will be an 'N/A' if the information is not availiable.
-        Possible line number of the vulerability: {line_number}
-        The type of the Vulnerability : {vul_type}
-        You will also be provided with sample repairs from the previous iteration and the feedback from an auto-test program.
-        sample repair: {reapired_code}
-        feedback: {harness_fdbk}
-        Begin!
-        """,
-        input_variables=["code", "pr_tools", "line_number", "vul_type", "reapired_code", "harness_fdbk" ],
+        template= prompts.ITERATIVE_PROMPTS,
+        input_variables=["code", "line_number", "vul_type", "reapired_code", "harness_fdbk" ],
     )
 
 
-    input_json = {}
+    proj_obj = structures.Project(input_json)
+
     llm_chain = LLMChain(llm=litellm, prompt=execute_task_prompt)
-    # A code sample from openssl)
-    code = load_code_need_to_fix(input_json)
+    # A code sample from openssl
+    code = proj_obj.code
     line_number = 'N/A' # TODO: collect line number info from static analysis
     reapired_code = "N/A"
     harness_fdbk = "N/A"
-
 
     while True:
         # the main loop for iterative program repair
         repaired_code = llm_chain.invoke(
             {
                 "code": code,
-                "line_number": line_number  ,
+                "line_number": line_number,
                 "vul_type": "N/A",
                 "reapired_code": reapired_code,
                 "harness_fdbk": harness_fdbk,
-            },return_only_outputs=True
+            },
+            return_only_outputs=True
             )
-        feed_back = goal_keeper(repaired_code)
+        patch = utils.gen_patch(proj_obj, repaired_code, patch_name)
+        feed_back = utils.goal_keeper(patch)
         if feed_back['build_status'] == 'pass' and feed_back['test_status'] == 'pass':
             break
         elif feed_back['build_status'] == 'pass' and feed_back['test_status'] == 'fail':
