@@ -9,9 +9,10 @@ from goalkeeper_test_patch import test_patch
 
 
 @tool
-def goal_keeper_caller(repaired_code:str, tgt_proj:str="linux")->dict:
+def goal_keeper_caller(patch_name:str, tgt_proj:str="linux")->dict:
     """Call an external API to test the patch"""
-    
+    with open(patch_name, 'r') as f:
+        patch = f.read()
     feedback = test_patch(patch, tgt_proj)
     '''
     {
