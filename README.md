@@ -24,6 +24,20 @@ TODO: set up a LiteLLM server with multiple LLM service supported.
 
 ### Usage:
 
+#### Input
+
+```json
+{
+    "project_name": "linux_kernel",
+    "commmit": "123456abcdef",
+    "file_name": "/net/tipc/crypto.c",
+    "function_name": "static bool tipc_crypto_key_rcv(struct tipc_crypto *rx, struct tipc_msg *hdr)",
+    "line_number": [2278,2337],
+}
+
+```
+
+
 #### local test
 
 ```shell
