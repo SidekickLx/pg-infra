@@ -3,7 +3,7 @@ class Project:
     def __init__(self, input_json):
         '''
         {
-            "project_name": "linux_kernel",
+            "project_name": "challenge-001-exemplar-cp",
             "commmit": "123456abcdef",
             "file_name": "/path/to/example.c",
             "function_name": "example_func",
@@ -12,6 +12,7 @@ class Project:
         '''
         self.project_name = input_json["project_name"]
         self.commit = input_json["commit"]
+        self.project_path = f"/tmp/{self.project_name}"
         self.file_name = input_json["file_name"]
         self.function_name = input_json["function_name"]
         self.line_number = input_json["line_number"]

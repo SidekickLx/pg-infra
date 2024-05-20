@@ -1,5 +1,27 @@
 import os
+import json
 from goalkeeper_test_patch import test_patch
+
+
+
+def get_input_json():
+    LOCAL_TEST = True
+    if LOCAL_TEST:
+        with open("will_received.json", "r") as f:
+            return json.load(f)
+    else:
+        # TODO: get input from RPC
+        pass
+
+
+def download_project(project_name):
+    """Download project from git"""
+    repo_url = "https://github.com/Sashikode/"
+    # git clone
+    os.system(f"git clone {repo_url}{project_name}.git ./tmp/{project_name}")
+    os.system(f"cd ./tmp/{project_name} && ./run.sh pull_source")
+
+
 
 
 def gen_patch(project, repaired_func, patch_name):

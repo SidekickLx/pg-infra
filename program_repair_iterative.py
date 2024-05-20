@@ -8,8 +8,12 @@ from langchain.chains.llm import LLMChain
 
 
 if __name__ == "__main__":
-    input_json = {}
+
+    input_json = utils.get_input_json()
     patch_name = "new_patch.diff"
+    utils.download_project(input_json["project_name"])
+    proj_obj = structures.Project(input_json)
+
 
     litellm = ChatLiteLLM(model="gpt-3.5-turbo") # use LiteLLM Interface
     execute_task_prompt = PromptTemplate(
@@ -17,8 +21,6 @@ if __name__ == "__main__":
         input_variables=["code", "line_number", "vul_type", "reapired_code", "harness_fdbk" ],
     )
 
-
-    proj_obj = structures.Project(input_json)
 
     llm_chain = LLMChain(llm=litellm, prompt=execute_task_prompt)
     # A code sample from openssl

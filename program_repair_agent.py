@@ -7,14 +7,15 @@ from langchain_community.chat_models import ChatLiteLLM
 from langchain.agents import AgentExecutor, ZeroShotAgent
 from langchain.chains.conversation.memory import ConversationBufferMemory
 import tools
+import utils
 
 
 
 if __name__ == "__main__":
-    input_json = {}
+    input_json = utils.get_input_json()
     pr_tools = [tools.goal_keeper_caller, tools.gen_patch]
-
-
+    proj_obj = structures.Project(input_json)
+    utils.download_project("challenge-001-exemplar-cp")
     prompt = ZeroShotAgent.create_prompt(
         tools = pr_tools,
         prefix=prompts.AGENT_PROMPT_PREFIX,
@@ -41,5 +42,5 @@ if __name__ == "__main__":
         return_intermediate_steps=True,
         handle_parsing_errors=True
     )
-    proj_obj = structures.Project(input_json)
+    
     agent_executor.invoke({"code":proj_obj.code})
