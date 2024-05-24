@@ -1,0 +1,110 @@
+--- a/net/tipc/crypto.c
++++ b/net/tipc/crypto.c
+@@ -61,55 +61,65 @@
+  */
+ static bool tipc_crypto_key_rcv(struct tipc_crypto *rx, struct tipc_msg *hdr)
+ {
++    struct tipc_crypto *tx = NULL;
++    struct tipc_aead_key *skey = NULL;
++    u16 key_gen = msg_key_gen(hdr);
++    u32 size = msg_data_sz(hdr);
++    u8 *data = msg_data(hdr);
++    unsigned int keylen;
+ 
+-	struct tipc_crypto *tx  = NULL;
+-	struct tipc_aead_key *skey = NULL;
+-	u16 key_gen = msg_key_gen(hdr);
+-	u32 size = msg_data_sz(hdr);
+-	u8 *data = msg_data(hdr);
+-	unsigned int keylen;
+-	
+-	if(rx->net){
+-		tx = tipc_net(rx->net)->crypto_tx;
+-	}
+-	keylen = ntohl(*((__be32 *)(data + TIPC_AEAD_ALG_NAME)));
++    if (rx->net) {
++        tx = tipc_net(rx->net)->crypto_tx;
++    }
+ 
+-	spin_lock(&rx->lock);
+-	if (unlikely(rx->skey || (key_gen == rx->key_gen && rx->key.keys))) {
+-		pr_err("%s: key existed <%p>, gen %d vs %d\n", rx->name,
+-		       rx->skey, key_gen, rx->key_gen);
+-		goto exit;
+-	}
++    if (size < TIPC_AEAD_ALG_NAME + sizeof(__be32)) {
++        pr_err("%s: data size too small for key\n", rx->name);
++        return false;
++    }
+ 
+-	/* Allocate memory for the key */
+-	skey = kmalloc(size, GFP_ATOMIC);
+-	if (unlikely(!skey)) {
+-		pr_err("%s: unable to allocate memory for skey\n", rx->name);
+-		goto exit;
+-	}
++    keylen = ntohl(*((__be32 *)(data + TIPC_AEAD_ALG_NAME)));
+ 
+-	/* Copy key from msg data */
+-	skey->keylen = keylen;
+-	memcpy(skey->alg_name, data, TIPC_AEAD_ALG_NAME);
+-	memcpy(skey->key, data + TIPC_AEAD_ALG_NAME + sizeof(__be32),
+-	       skey->keylen);
++    if (keylen > size - TIPC_AEAD_ALG_NAME - sizeof(__be32)) {
++        pr_err("%s: key length exceeds data size\n", rx->name);
++        return false;
++    }
+ 
+-	rx->key_gen = key_gen;
+-	rx->skey_mode = msg_key_mode(hdr);
+-	rx->skey = skey;
+-	rx->nokey = 0;
+-	mb(); /* for nokey flag */
++    spin_lock(&rx->lock);
++    if (unlikely(rx->skey || (key_gen == rx->key_gen && rx->key.keys))) {
++        pr_err("%s: key existed <%p>, gen %d vs %d\n", rx->name,
++               rx->skey, key_gen, rx->key_gen);
++        spin_unlock(&rx->lock);
++        return false;
++    }
+ 
+-exit:
+-	spin_unlock(&rx->lock);
+-	/* Schedule the key attaching on this crypto */
+-	if (rx->net){
+-	if (likely(skey && queue_delayed_work(tx->wq, &rx->work, 0)))
+-		return true;
+-	}
+-	return false;
++    /* Allocate memory for the key */
++    skey = kmalloc(sizeof(*skey) + keylen, GFP_ATOMIC);
++    if (unlikely(!skey)) {
++        pr_err("%s: unable to allocate memory for skey\n", rx->name);
++        spin_unlock(&rx->lock);
++        return false;
++    }
++
++    /* Copy key from msg data */
++    skey->keylen = keylen;
++    memcpy(skey->alg_name, data, TIPC_AEAD_ALG_NAME);
++    memcpy(skey->key, data + TIPC_AEAD_ALG_NAME + sizeof(__be32), keylen);
++
++    rx->key_gen = key_gen;
++    rx->skey_mode = msg_key_mode(hdr);
++    rx->skey = skey;
++    rx->nokey = 0;
++    mb(); /* for nokey flag */
++
++    spin_unlock(&rx->lock);
++
++    /* Schedule the key attaching on this crypto */
++    if (rx->net && tx && likely(queue_delayed_work(tx->wq, &rx->work, 0))) {
++        return true;
++    }
++
++    return false;
+ }
+-
+ /**
+  * tipc_crypto_work_rx - Scheduled RX works handler
+  * @work: the struct RX work
