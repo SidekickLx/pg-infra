@@ -3,9 +3,9 @@
 # Prompt for iterative auto program repair.
 ITERATIVE_PROMPTS = \
 """
-    You are a cybersecurity expert that is responsible to repair a vulnerable code.
+    You are a cybersecurity expert. Here is a function that contains a vulerability.
     {code}
-    Your task is to generate a code snippet that fix the vulerability. Do not output other irrelavent information!
+    Fix the vulerability in the code and output the complete fixed function. Do not output other irrelavent information!
     Here are some useful information that can help you identify the vulerability. There will be an 'N/A' if the information is not availiable.
     Possible line number of the vulerability: {line_number}
     The type of the Vulnerability : {vul_type}

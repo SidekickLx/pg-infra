@@ -31,7 +31,7 @@ if __name__ == "__main__":
         memory_key="chat_history", input_key="code", output_key="output"
     )
 
-    litellm = ChatLiteLLM(model="gpt-4-turbo")
+    litellm = ChatLiteLLM(model="gpt-4-turbo") # TODO api_base = "https://litellm-api-key"
     llm_chain = LLMChain(llm=litellm, prompt=prompt)
     agent = ZeroShotAgent(llm_chain=llm_chain)
     agent_executor = AgentExecutor.from_agent_and_tools(

@@ -1,5 +1,6 @@
 import os
 import json
+import difflib
 from goalkeeper_test_patch import test_patch
 
 
@@ -26,20 +27,22 @@ def download_project(project_name):
 
 def gen_patch(project, repaired_func, patch_name):
     """Generate patch file from source and target files"""
+    # print(f".{project.project_path}{project.file_name}")
+    # print(repaired_func)
     try:
-        with open(project.file_name, "r") as f:
-            lines = f.readlines()
-            # delete original function and insert the new one
-            del lines[project.line_number[0]:project.line_number[1]]
-            lines.insert(project.line_number[0], repaired_func.split("\n"))
-        with open(project.file_name, "w") as f:
-            f.write("\n".join(lines))
-        os.system(f"git add {project.file_name}")
-        os.system(f"git diff > {patch_name}") # TODO: handle file lists
+        repaired_func = repaired_func["text"]
+        if repaired_func.startswith("```c"):
+            repaired_func = repaired_func[5:-3]
+
+        org_func = project.prefix + project.code + project.sufix
+        repaired_func = project.prefix + repaired_func + project.sufix
+        patch = difflib.unified_diff(org_func.splitlines(), repaired_func.splitlines(), lineterm='', fromfile="a"+project.file_name, tofile="b"+project.file_name)  
+        with open(patch_name, 'w') as f:
+            f.write("\n".join(patch)+"\n")
         return patch_name
     except Exception as e:
         print(e)
-        return None
+        exit(1)
 
 
 def goal_keeper(patch_name, tgt_proj="linux"):
