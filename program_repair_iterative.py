@@ -15,8 +15,9 @@ if __name__ == "__main__":
     proj_obj = structures.Project(input_json)
     print(" Project downloaded successfully!")
 
-    from langchain_openai import ChatOpenAI
-    litellm = ChatOpenAI(model_name="gpt-4-turbo", streaming=True,  temperature=0) # use LiteLLM Interface
+    # from langchain_openai import ChatOpenAI
+    # litellm = ChatOpenAI(model_name="gpt-4-turbo", streaming=True,  temperature=0) # use LiteLLM Interface
+    litellm = ChatLiteLLM(model="gpt-4-turbo", max_tokens=65535) # use LiteLLM Interface
     execute_task_prompt = PromptTemplate(
         template= prompts.ITERATIVE_PROMPTS,
         input_variables=["code", "line_number", "vul_type", "reapired_code", "harness_fdbk" ],
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     while True:
         print("iters: ", iter)
         # the main loop for iterative program repair
-        try:
+        try:            
             repaired_code = llm_chain.invoke(
                 {
                     "code": code,
