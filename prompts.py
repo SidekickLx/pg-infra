@@ -20,7 +20,7 @@ AGENT_PROMPT_PREFIX = \
 """
     You are a cybersecurity expert that is responsible to repair a vulnerable code.
     {code}
-    Your task is to generate a code snippet that fix the vulerability. Do not output other irrelavent information!
+    Your task is to generate a code snippet that fix the vulerability. And test the patch with an goalkeeper program.
     You can use following tools {pr_tools}
     Here are some useful information that can help you identify the vulerability. There will be an 'N/A' if the information is not availiable.
     Possible line number of the vulerability: {line_number}
