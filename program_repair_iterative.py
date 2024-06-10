@@ -3,7 +3,7 @@ import structures
 import prompts
 import utils
 from langchain_core.prompts import PromptTemplate
-from langchain_community.chat_models import ChatLiteLLM
+from langchain_openai import ChatOpenAI
 from langchain.chains.llm import LLMChain 
 
 
@@ -17,7 +17,12 @@ if __name__ == "__main__":
 
     # from langchain_openai import ChatOpenAI
     # litellm = ChatOpenAI(model_name="gpt-4-turbo", streaming=True,  temperature=0) # use LiteLLM Interface
-    litellm = ChatLiteLLM(model="gpt-4-turbo", max_tokens=65535) # use LiteLLM Interface
+    litellm = ChatOpenAI(model="gemini-1.5-pro-preview-0409", 
+                          temperature=0, 
+                          max_tokens=8192,
+                          api_key="sk-fnBdBgugSvfZ2ejzX6HFFQ",
+                          base_url="https://aixcc.lyric.today:465", # specify the deployed url
+                          ) # use LiteLLM Interface
     execute_task_prompt = PromptTemplate(
         template= prompts.ITERATIVE_PROMPTS,
         input_variables=["code", "line_number", "vul_type", "reapired_code", "harness_fdbk" ],
