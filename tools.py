@@ -62,5 +62,12 @@ def gen_patch(project, repaired_func, patch_name):
         exit(1)
 
 
+@tool("download_project")
+def download_project(project_name:str):
+    """Download project from git"""
+    repo_url = "https://github.com/Sashikode/"
+    # git clone
+    os.system(f"git clone {repo_url}{project_name}.git ./tmp/{project_name}")
+    os.system(f"cd ./tmp/{project_name} && ./run.sh pull_source")
 
 

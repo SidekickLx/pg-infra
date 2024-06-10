@@ -13,7 +13,7 @@ import utils
 
 if __name__ == "__main__":
     input_json = utils.get_input_json()
-    pr_tools = [tools.goal_keeper_caller, tools.gen_patch]
+    pr_tools = [tools.goal_keeper_caller, tools.gen_patch, tools.download_project]
     proj_obj = structures.Project(input_json)
     utils.download_project("challenge-001-exemplar-cp")
     prompt = ZeroShotAgent.create_prompt(
